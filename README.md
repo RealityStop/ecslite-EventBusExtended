@@ -1,7 +1,5 @@
 # EcsLite EventBus Extended
 
-> ⚠️ This repository is being actively worked on and tested.  This notice will be removed when ready for general use.
-
 💡 EventBus Extended is an extension for [RealityStop/ecslite-EventBus] that adds a few helpful utilities, particularly for Unity.
 
 ⚠️ Unlike the core EventBus, this extension requires the [RealityStop/ecslite-ServiceContainer](https://github.com/RealityStop/ecslite-ServiceContainer) extension.  This is in order to provide an in-scene Hosted EventBus service, so that Unity scripts can wire listeners before the ECS system has started.
