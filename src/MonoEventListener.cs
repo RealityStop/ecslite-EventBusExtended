@@ -19,13 +19,34 @@ namespace Leopotam.EcsLite
 		}
 	}
 	
-	
+	/// <summary>
+	/// A class that listens to one or more events on one entity.
+	/// </summary>
 	public abstract class MonoEventListener : MonoBehaviour, IEventListener
 	{
+		/// <summary>
+		/// Whether this listener is bound to an entity.
+		/// </summary>
 		public bool IsBound { get; private set; }
+		
+		/// <summary>
+		/// The cached unpacked world.  ONLY SAFE FOR USE INSIDE OF OnSubscribe AND EVENT CALLBACKS!  Otherwise, use PackedEntity.
+		/// </summary>
 		protected EcsWorld UnsafeWorld { get; private set; }
+		
+		/// <summary>
+		/// The cached unpacked entity.  ONLY SAFE FOR USE INSIDE OF OnSubscribe AND EVENT CALLBACKS!  Otherwise, use PackedEntity.
+		/// </summary>
 		protected int UnsafeEntity { get; private set; }
+		
+		/// <summary>
+		/// The packed entity that this listener is bound to, which should always be safe.  When inside
+		/// of an event callback, it is faster to use the cached Unsafe versions, as it is only possible to get the
+		/// callback if that entity is still alive.  Outside of the callback and OnSubscribe, however, you must use the PackedEntity
+		/// version.
+		/// </summary>
 		protected EcsPackedEntityWithWorld PackedEntity { get; private set; }
+		
 		
 		public IServiceContainer Services { get; private set;  }
 

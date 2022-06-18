@@ -17,157 +17,25 @@ namespace Leopotam.EcsLite
 	public static class DisposableContainerExt
 	{
 		[DebuggerStepThrough]
-		public static void DisposeWith(this IDisposable self, DisposableContainer parent)
+		public static T DisposeWith<T>(this T self, DisposableContainer hostingContainer) where T : IDisposable
 		{
-			parent.Add(self);
-		}
-
-
-		[DebuggerStepThrough]
-		public static T DisposeWith<T>(this T self, DisposableContainer parent) where T : IDisposable
-		{
-			parent.Add(self);
+			hostingContainer.Add(self);
 			return self;
 		}
 	}
 
 	/// <summary>
-	///     A reusable container for disposables.  Can be used over and over, and each time it is disposed it will dispose any
-	///     items in it and reset itself to be used again.
+	///     A reusable container for disposables.  Can be used over and over, and each time
+	///     it is disposed it will dispose any items in it and reset itself to be used again.
 	/// </summary>
-	public class DisposableContainer : IDisposable
+	public class DisposableContainer : List<IDisposable>, IDisposable
 	{
-		//private bool _isDisposed = false;
-		private readonly CompositeDisposable _bufferA = new();
-		private readonly CompositeDisposable _bufferB = new();
-
-		private readonly object lockObject = new();
-		private bool isDisposing;
-
-
-		public DisposableContainer()
-		{
-			ActiveCollection = _bufferA;
-			BufferCollection = _bufferB;
-		}
-
-
-		private CompositeDisposable ActiveCollection { get; set; }
-		private CompositeDisposable BufferCollection { get; set; }
-
-
-		public int Count
-		{
-			get
-			{
-				lock (lockObject)
-				{
-					return ActiveCollection.Count + BufferCollection.Count;
-				}
-			}
-		}
-
-
 		public void Dispose()
 		{
-			//Swap the two collections under lock, so new items go to the empty and existing items go to the new active
-			lock (lockObject)
-			{
-				//But we can't swap until the previous cleanup was done, so just... don't
-				if (isDisposing)
-					return;
+			foreach (var item in this)
+				item?.Dispose();
 
-				isDisposing = true;
-
-				(ActiveCollection, BufferCollection) = (BufferCollection, ActiveCollection);
-			}
-
-			//We don't actually dispose under the lock.  That could deadlock.  But we should only dispose once.
-
-			BufferCollection.Dispose();
-
-
-			lock (lockObject)
-			{
-				isDisposing = false;
-			}
-		}
-
-
-		public void Add(IDisposable item)
-		{
-			lock (lockObject)
-			{
-				ActiveCollection.Add(item);
-			}
-		}
-
-
-		public void Add(Action act)
-		{
-			Add(Disposable.Create(act));
-		}
-
-
-		public void Clear()
-		{
-			lock (lockObject)
-			{
-				ActiveCollection.Clear();
-				BufferCollection.Clear();
-			}
-		}
-
-
-		public bool Contains(IDisposable item)
-		{
-			lock (lockObject)
-			{
-				return ActiveCollection.Contains(item) || BufferCollection.Contains(item);
-			}
-		}
-
-
-		public void CopyTo(IDisposable[] array, int arrayIndex)
-		{
-			lock (lockObject)
-			{
-				ActiveCollection.Concat(BufferCollection).ToArray().CopyTo(array, arrayIndex);
-			}
-		}
-
-
-		public IDisposable Get()
-		{
-			return Disposable.Create(() => { Dispose(); });
-		}
-
-
-		public IEnumerator<IDisposable> GetEnumerator()
-		{
-			throw new NotImplementedException();
-		}
-
-
-		public bool Remove(IDisposable item)
-		{
-			lock (lockObject)
-			{
-				return ActiveCollection.Remove(item);
-			}
-		}
-
-
-		private class CompositeDisposable : List<IDisposable>, IDisposable
-		{
-			public void Dispose()
-			{
-				foreach (var item in this)
-					if (item != null)
-						item.Dispose();
-
-				Clear();
-			}
+			Clear();
 		}
 	}
 }
