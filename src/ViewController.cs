@@ -73,7 +73,7 @@ namespace Leopotam.EcsLite
 			OnPostDestroyListeners();
 
 			Entity = default;
-			OnDestroy();
+			OnViewDestroyed();
 		}
 
 		
@@ -92,7 +92,7 @@ namespace Leopotam.EcsLite
 		/// Controls how the object is destroyed.  By default, the gameobject is simply destroyed.  Override this
 		/// to provide a pooling implementation, etc.
 		/// </summary>
-		public virtual void OnDestroy()
+		public virtual void OnViewDestroyed()
 		{
 			Object.Destroy(this);
 		}
